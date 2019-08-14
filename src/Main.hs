@@ -2,12 +2,16 @@ module Main where
 
 import Wrap
 
+import System.Environment   
+
 api = "https://api.telegram.org/"
-bot_token = "bot605822040:AAFKOnPC7MnSbEOwNpTdKQG6hS_cVbAGwfE"
-chat_id = "160758532"
+  
 
 main :: IO ()
 main = do
+  let bot_token = " "
+  let chat_id   = " "
+
   getHistory api bot_token chat_id
 --  serve
 --  getUpdates api bot_token
