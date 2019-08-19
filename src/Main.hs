@@ -1,18 +1,21 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
-import Wrap
+import           Network.HTTP.Client      (newManager)
+import           Network.HTTP.Client.TLS  (tlsManagerSettings)
+import           Web.Telegram.API.Bot
+import Control.Arrow
+import Data.Maybe
+import Data.Functor (void)
 
-import System.Environment   
+token :: Token
+token = Token "<token>"
 
-api = "https://api.telegram.org/"
-  
+fromJust (Just x) = x
 
 main :: IO ()
 main = do
-  let bot_token = " "
-  let chat_id   = " "
-
-  getHistory api bot_token chat_id
---  serve
---  getUpdates api bot_token
---  sendMessage api bot_token chat_id "yo"
+  manager <- newManager tlsManagerSettings
+  void $ runTelegramClient token manager $ do
+    sendMessageM (SendMessageRequest (ChatChannel "-1001330413002") "yo" Nothing Nothing Nothing Nothing Nothing)
