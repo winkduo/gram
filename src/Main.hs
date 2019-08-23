@@ -5,17 +5,20 @@ module Main where
 import           Network.HTTP.Client      (newManager)
 import           Network.HTTP.Client.TLS  (tlsManagerSettings)
 import           Web.Telegram.API.Bot
-import Control.Arrow
 import Data.Maybe
-import Data.Functor (void)
 
 token :: Token
-token = Token "<token>"
+token = Token "token"
 
-fromJust (Just x) = x
+getMessages = do
+  manager <- newManager tlsManagerSettings
+  r1 <- getUpdates token Nothing Nothing Nothing manager
+  return $ mapMaybe text . mapMaybe message . result <$> r1
 
 main :: IO ()
 main = do
-  manager <- newManager tlsManagerSettings
-  void $ runTelegramClient token manager $ do
-    sendMessageM (SendMessageRequest (ChatChannel "-1001330413002") "yo" Nothing Nothing Nothing Nothing Nothing)
+  print $ "wow"
+
+--  void $ runTelegramClient token manager $ do
+--    sendMessageM (SendMessageRequest (ChatChannel "-1001330413002") "" Nothing Nothing Nothing Nothing Nothing)
+
