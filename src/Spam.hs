@@ -1,43 +1,43 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeOperators              #-}
 
 module Spam (mkSpamDetector, SpamResult) where
 
-import Utils
-import Prelude hiding (head, last)
-import Control.Monad (forever, (>=>))
-import Control.Retry
-import Data.Either (isLeft)
-import Control.Monad.IO.Class
-import qualified Web.Telegram.API.Bot as Tgrm
-import Control.Concurrent.Timeout
-import Data.Time.Clock
-import qualified Data.Map as M
-import Control.Applicative (liftA2)
-import Control.Monad.Except
-import Control.Monad.State
-import qualified Data.Text as T
-import qualified Data.List.NonEmpty as NE
-import Control.Lens.Combinators (both, over)
-import Control.Arrow ((&&&), (>>>))
-import Data.Foldable (for_)
-import Control.Lens hiding ((#))
-import Control.Lens.Operators ((%=))
-import Debug.Trace (trace)
+import           Control.Applicative        (liftA2)
+import           Control.Arrow              ((&&&), (>>>))
+import           Control.Concurrent.Timeout
+import           Control.Lens               hiding (( # ))
+import           Control.Lens.Combinators   (both, over)
+import           Control.Lens.Operators     ((%=))
+import           Control.Monad              (forever, (>=>))
+import           Control.Monad.Except
+import           Control.Monad.IO.Class
+import           Control.Monad.State
+import           Control.Retry
+import           Data.Either                (isLeft)
+import           Data.Foldable              (for_)
+import qualified Data.List.NonEmpty         as NE
+import qualified Data.Map                   as M
+import qualified Data.Text                  as T
+import           Data.Time.Clock
+import           Debug.Trace                (trace)
+import           Utils
+import qualified Web.Telegram.API.Bot       as Tgrm
 
 -- * Types
 newtype SpamM a = SpamM { runSpamM :: StateT SpamState (ExceptT SpamError IO) a }
   deriving (Functor, Applicative, Monad, MonadIO, MonadError SpamError, MonadState SpamState)
 
 data Spam = Spam
-  { _spamUser :: T.Text
+  { _spamUser     :: T.Text
   , _spamMessages :: [Tgrm.Message]
   } deriving (Show)
 

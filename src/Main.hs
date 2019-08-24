@@ -1,18 +1,18 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 
 module Main where
 
-import           Network.HTTP.Client      (newManager)
-import           Network.HTTP.Client.TLS  (tlsManagerSettings)
-import qualified Data.Text as T
-import qualified Web.Telegram.API.Bot as Tgrm
-import           Data.Functor (void)
-import Data.Maybe
-import Control.Applicative (liftA2)
-import Servant.Client.Core.ClientError (ClientError)
-import Control.Concurrent.Async (async, wait)
-import Spam (mkSpamDetector, SpamResult)
+import           Control.Applicative             (liftA2)
+import           Control.Concurrent.Async        (async, wait)
+import           Data.Functor                    (void)
+import           Data.Maybe
+import qualified Data.Text                       as T
+import           Network.HTTP.Client             (newManager)
+import           Network.HTTP.Client.TLS         (tlsManagerSettings)
+import           Servant.Client.Core.ClientError (ClientError)
+import           Spam                            (SpamResult, mkSpamDetector)
+import qualified Web.Telegram.API.Bot            as Tgrm
 
 token :: Tgrm.Token
 token = Tgrm.Token "<token>"
