@@ -33,17 +33,16 @@ resolver: lts-14.0
 #  - auto-update
 #  - wai
 packages:
-- location:
-    git: https://github.com/klappvisor/haskell-telegram-api
-    commit: dcc491b6abee6157d4ec607c71ba3a4915eb0edb
-  extra-dep: true
 - .
+
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - typed-duration-0.1.1.0
-
+- git: https://github.com/klappvisor/haskell-telegram-api.git
+  commit: dcc491b6abee6157d4ec607c71ba3a4915eb0edb
+  
 # - hjson-1.3.2
 # - hjpath-3.0.1
 # - servant-0.12.1
