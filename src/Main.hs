@@ -5,22 +5,37 @@ module Main where
 
 import           Network.HTTP.Client      (newManager)
 import           Network.HTTP.Client.TLS  (tlsManagerSettings)
-import           Web.Telegram.API.Bot
+import qualified Data.Text as T
+import qualified Web.Telegram.API.Bot as Tgrm
+import           Data.Functor (void)
 import Data.Maybe
-import Servant.Client.Core.Internal.Request
+import Control.Applicative (liftA2)
+import Servant.Client.Core.ClientError (ClientError)
+import Control.Concurrent.Async (async, wait)
+import Spam (mkSpamDetector, SpamResult)
 
-token :: Token
-token = Token "<token>"
+token :: Tgrm.Token
+token = Tgrm.Token "<token>"
 
-getMessages ::  IO (Either ServantError [Message]) 
-getMessages = do
+runTgrm :: Tgrm.TelegramClient a -> IO (Either ClientError a)
+runTgrm f = do
   manager <- newManager tlsManagerSettings
-  r1 <- getUpdates token Nothing Nothing Nothing manager
-  return $ mapMaybe message . result <$> r1
+  Tgrm.runClient f token manager
+
+getMessages :: IO (Either ClientError [Tgrm.Message])
+getMessages = runTgrm $ do
+  r1 <- Tgrm.getUpdatesM (Tgrm.GetUpdatesRequest Nothing Nothing Nothing Nothing)
+  return $ mapMaybe Tgrm.message . Tgrm.result $ r1
+
+chatId :: Tgrm.ChatId
+chatId = Tgrm.ChatId (-1001330413002)
+
+sendMessage :: T.Text -> IO ()
+sendMessage message = void $ runTgrm $
+  Tgrm.sendMessageM $ Tgrm.SendMessageRequest chatId message Nothing Nothing Nothing Nothing Nothing
 
 main :: IO ()
 main = do
-  print $ "wow"
---  void $ runTelegramClient token manager $ do
---    sendMessageM (SendMessageRequest (ChatChannel "-1001330413002") "" Nothing Nothing Nothing Nothing Nothing)
-
+  spam_detector <- async $ mkSpamDetector getMessages sendMessage
+  wait spam_detector
+  putStrLn "Every thread is terminated."
