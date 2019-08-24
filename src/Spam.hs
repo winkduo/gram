@@ -30,6 +30,7 @@ import Control.Arrow ((&&&), (>>>))
 import Data.Foldable (for_)
 import Control.Lens hiding ((#))
 import Control.Lens.Operators ((%=))
+import Debug.Trace (trace)
 
 -- * Types
 newtype SpamM a = SpamM { runSpamM :: StateT SpamState (ExceptT SpamError IO) a }
@@ -47,7 +48,7 @@ newtype SpamError = SpamError T.Text
 
 newtype SpamState = SpamState
   { _spamNotifications :: [(T.Text, UTCTime)]
-  }
+  } deriving Show
 makeLenses ''SpamState
 
 -- * Parameters
@@ -77,7 +78,7 @@ consecutiveMessages :: SpamPredicate
 consecutiveMessages =
   runningCheck minConsecutiveMessages $ \messages ->
     let (date_fst, date_lst) = over both (fromIntegral . Tgrm.date) $ NE.head &&& NE.last $ messages in
-    date_lst - date_fst > consecutiveMessageTimeWindow
+    date_lst - date_fst < consecutiveMessageTimeWindow
 
 -- | Retries an IO action that can return an error using exponential backoff forever.
 withExponentialBackoff
@@ -91,7 +92,7 @@ withExponentialBackoff =
   . const
 
 detectSpam :: [Tgrm.Message] -> [Spam]
-detectSpam = mapByMaybe (Tgrm.from >=> Tgrm.user_username)
+detectSpam = mapByMaybe (fmap Tgrm.user_first_name . Tgrm.from)
          >>> M.filter consecutiveMessages
          >>> M.foldrWithKey (((:) .) . Spam) []
 
@@ -99,21 +100,35 @@ initSpamState :: SpamState
 initSpamState = SpamState []
 
 mkSpamDetector :: Show err => IO (Either err [Tgrm.Message]) -> (T.Text -> IO ()) -> IO ()
-mkSpamDetector get_messages send_message =
-  forever $
-  runExceptT $
-  flip execStateT initSpamState $
-    runSpamM $ do
-      run_spam_detector
-      liftIO $ threadDelay pollingInterval
+mkSpamDetector get_messages send_message = do
+  putStrLn "Starting spam detector thread..."
+  void $
+    runExceptT $
+    flip execStateT initSpamState $
+    forever $
+      runSpamM $ do
+        run_spam_detector
+        liftIO $ threadDelay pollingInterval
   where
     run_spam_detector :: SpamM ()
     run_spam_detector = do
+      spam_state <- get
+      liftIO $ putStrLn "Running spam detector. State:"
+      liftIO $ print spam_state
       spams <- detectSpam <$> read_messages
       evict_outdated_spam_notifications
+      liftIO $ print spams
       notified_users <- map fst <$> gets _spamNotifications
-      for_ (filter (not . (`elem` notified_users) . _spamUser) spams) $ \(Spam user _messages) ->
+      for_ (filter (not . (`elem` notified_users) . _spamUser) spams) $ \(Spam user _messages) -> do
+        liftIO $ putStrLn "Sending a message"
         liftIO $ send_message $ "Hey @" <> user <> ", you've spammed dude"
+        liftIO $ print $ "Adding user to state: " <> user
+        add_user_to_notified_users user
+
+    add_user_to_notified_users :: (MonadIO m, MonadState SpamState m) => T.Text -> m ()
+    add_user_to_notified_users user = do
+      curr_time <- liftIO getCurrentTime
+      spamNotifications %= ((user, curr_time):)
 
     evict_outdated_spam_notifications :: (MonadIO m, MonadState SpamState m) => m ()
     evict_outdated_spam_notifications = do
