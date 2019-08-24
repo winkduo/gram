@@ -113,16 +113,14 @@ mkSpamDetector get_messages send_message = do
     run_spam_detector :: SpamM ()
     run_spam_detector = do
       spam_state <- get
-      liftIO $ putStrLn "Running spam detector. State:"
+      liftIO $ putStrLn "Running spam detector."
       liftIO $ print spam_state
       spams <- detectSpam <$> read_messages
       evict_outdated_spam_notifications
       liftIO $ print spams
       notified_users <- map fst <$> gets _spamNotifications
       for_ (filter (not . (`elem` notified_users) . _spamUser) spams) $ \(Spam user _messages) -> do
-        liftIO $ putStrLn "Sending a message"
-        liftIO $ send_message $ "Hey @" <> user <> ", you've spammed dude"
-        liftIO $ print $ "Adding user to state: " <> user
+        liftIO $ send_message $ "Hey @" <> user <> ", you've spammed!"
         add_user_to_notified_users user
 
     add_user_to_notified_users :: (MonadIO m, MonadState SpamState m) => T.Text -> m ()

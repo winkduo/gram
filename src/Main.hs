@@ -15,7 +15,7 @@ import Control.Concurrent.Async (async, wait)
 import Spam (mkSpamDetector, SpamResult)
 
 token :: Tgrm.Token
-token = Tgrm.Token "bot804952120:AAG7uUoGf8F3gVbiVZWKNkuuAayqPehp30E"
+token = Tgrm.Token "<token>"
 
 runTgrm :: Tgrm.TelegramClient a -> IO (Either ClientError a)
 runTgrm f = do
