@@ -42,7 +42,9 @@ extra-deps:
 - typed-duration-0.1.1.0
 - git: https://github.com/klappvisor/haskell-telegram-api.git
   commit: dcc491b6abee6157d4ec607c71ba3a4915eb0edb
-  
+- git: https://github.com/egormkn/tdlib-haskell-bindings.git
+  commit: d86626d9e1566fd697f38c3f5e66ff00c17bd3f7
+
 # - hjson-1.3.2
 # - hjpath-3.0.1
 # - servant-0.12.1
@@ -68,7 +70,8 @@ extra-deps:
 #
 # Extra directories used by stack for building
 # extra-include-dirs: [/path/to/dir]
-# extra-lib-dirs: [/path/to/dir]
+extra-lib-dirs:
+- ./lib
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor

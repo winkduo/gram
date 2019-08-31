@@ -18,5 +18,10 @@ cabal.sandbox.config
 .stack-work/
 cabal.project.local
 cabal.project.local~
+lib/*.dylib
+lib/*.so
+lib/*.dll
+error.log
+tdlib/
 .HTF/
 .ghc.environment.*

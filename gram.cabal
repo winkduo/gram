@@ -29,6 +29,7 @@ executable gram
   build-depends:       base >=4.9
                      , curl
                      , telegram-api
+                     , tdlib-haskell-bindings
                      , http-client
                      , http-types
                      , http-client-tls
