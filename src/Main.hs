@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 
 module Main where
 
 import           Control.Applicative             (liftA2)
-import           Control.Concurrent.Async        (async, wait)
+import           Control.Concurrent.Async        (async, wait, waitAny)
 import           Data.Functor                    (void)
 import           Data.Maybe
 import qualified Data.Text                       as T
@@ -13,6 +14,12 @@ import           Network.HTTP.Client.TLS         (tlsManagerSettings)
 import           Servant.Client.Core.ClientError (ClientError)
 import           Spam                            (SpamResult, mkSpamDetector)
 import qualified Web.Telegram.API.Bot            as Tgrm
+import Telegram
+import qualified LoadEnv
+import qualified Control.Concurrent.Privileged as PC
+import Control.Monad (forever)
+import Control.Concurrent (threadDelay)
+import qualified Telegram.Database.API.Messages as TDLib
 
 token :: Tgrm.Token
 token = Tgrm.Token "<token>"
@@ -34,8 +41,16 @@ sendMessage :: T.Text -> IO ()
 sendMessage message = void $ runTgrm $
   Tgrm.sendMessageM $ Tgrm.SendMessageRequest chatId message Nothing Nothing Nothing Nothing Nothing
 
+mkTelegramProcessor :: TelegramController IO TDLib.Message -> IO ()
+mkTelegramProcessor (TelegramController sub) = do
+  chan <- sub
+  forever $ PC.readChan chan >>= print
+
 main :: IO ()
 main = do
+  LoadEnv.loadEnv
+  telegram_ctrl <- mkTelegramController
+  telegram_processor <- async $ mkTelegramProcessor telegram_ctrl
   spam_detector <- async $ mkSpamDetector getMessages sendMessage
-  wait spam_detector
-  putStrLn "Every thread is terminated."
+  void $ waitAny [spam_detector, telegram_processor]
+  putStrLn "A thread is terminated, exiting."

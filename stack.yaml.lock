@@ -12,6 +12,13 @@ packages:
   original:
     hackage: typed-duration-0.1.1.0
 - completed:
+    hackage: privileged-concurrency-0.7.0@sha256:c73bb0000b5e1b7335cb1ca5065054173b0e911701345715eb6112b118b6919e,1749
+    pantry-tree:
+      size: 1450
+      sha256: 42b2abdcd668cdef80c4df31c7803c334874946d4ed2542077355a97c3b581e5
+  original:
+    hackage: privileged-concurrency-0.7.0
+- completed:
     cabal-file:
       size: 3991
       sha256: 449f10368e6233f708cd85cfd6b7265a694d5f7ac8314427cb6f88296995aae6
