@@ -38,14 +38,14 @@ packages:
       sha256: 65e39c58c03abe7a183fbde21170b776891e209901dfb59fba87242c90003de3
     name: tdlib-haskell-bindings
     version: 0.1.0.0
-    git: https://github.com/egormkn/tdlib-haskell-bindings.git
+    git: https://github.com/yigitozkavci/tdlib-haskell-bindings.git
     pantry-tree:
       size: 1062
-      sha256: 340a8d7b56af2459ecb9ef8ae1126bc9fb33c590d0da8262163f0f2f281186b4
-    commit: d86626d9e1566fd697f38c3f5e66ff00c17bd3f7
+      sha256: c5b622576d6d22ca068df897367ac2931f37db767abd3dcc150b2b0131918ee2
+    commit: 4df4d6df6a6b6481acb73980e90dcb3d86eb51c8
   original:
-    git: https://github.com/egormkn/tdlib-haskell-bindings.git
-    commit: d86626d9e1566fd697f38c3f5e66ff00c17bd3f7
+    git: https://github.com/yigitozkavci/tdlib-haskell-bindings.git
+    commit: 4df4d6df6a6b6481acb73980e90dcb3d86eb51c8
 snapshots:
 - completed:
     size: 523443
