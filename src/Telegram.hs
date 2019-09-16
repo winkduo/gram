@@ -22,6 +22,8 @@ import Data.Foldable (for_)
 import Data.Functor (void)
 import Control.Concurrent.Async
 import Control.Monad (forever)
+import Data.Int (Int64)
+import System.Posix.Signals
 
 setVerbosity :: TDLib.Client -> IO ()
 setVerbosity =
@@ -30,8 +32,9 @@ setVerbosity =
     "new_verbosity_level_" JSON..= JSON.toJSON (0 :: Int)
   ]
 
-newtype TelegramController m update = TelegramController
+data TelegramController m update = TelegramController
   { _tcSubscribeToUpdates :: m (PC.ReadOnlyChan update)
+  , _tcSendMessage :: Int64 -> T.Text -> m ()
   }
 
 data PubSub m update = PubSub
@@ -58,13 +61,23 @@ readAuthConfig =
     <*> getEnv "API_HASH"
     <*> (T.pack <$> getEnv "API_PHONE_NUMBER")
 
-mkTelegramController :: IO (TelegramController IO TDLib.Message)
+sendMessage :: TDLib.Client -> Int64 -> T.Text -> IO ()
+sendMessage client chat_id message =
+  TDLib.send (JSON.object [
+    "@type"          JSON..= JSON.String ("sendMessage" :: T.Text),
+    "chat_id_"       JSON..= JSON.toJSON chat_id,
+    "input_message_content_" JSON..= JSON.toJSON message
+  ]) client
+
+mkTelegramController :: IO (TelegramController IO TDLib.Message, IO ())
 mkTelegramController = do
+  client <- TDLib.create
+  let destroy = TDLib.destroy client
+  void $ installHandler sigINT (Catch destroy) Nothing
   config <- readAuthConfig
   PubSub pub sub <- mkPubSub
-  client <- TDLib.create
   listener <- async $ forever $ TDLib.receiveEither client >>= handleUpdate client config pub
-  pure $ TelegramController sub
+  pure $ (TelegramController sub (sendMessage client), destroy)
 
 data TDAuthConfig = TDAuthConfig
   { _acApiId :: Int
