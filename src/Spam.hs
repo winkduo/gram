@@ -1,72 +1,75 @@
-{-# LANGUAGE ScopedTypeVariables           #-}
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE ImplicitParams             #-}
-{-# LANGUAGE FlexibleContexts             #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE ConstraintKinds            #-}
--- {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase                 #-}
--- {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Spam (detectSpams, Spam (..)) where
 
-import           Control.Applicative        (liftA2)
-import           Control.Arrow              ((&&&), (>>>))
-import           Control.Concurrent.Timeout
-import           Control.Lens               hiding (( # ), (<<%=))
-import           Control.Lens.Combinators   (both, over)
-import           Control.Lens.Operators     ((%=))
-import           Control.Monad              (forever, (>=>))
-import           Control.Monad.Except
-import           Control.Monad.IO.Class
-import           Control.Monad.State
-import           Control.Retry
-import           Data.Either                (isLeft)
-import           Data.Foldable              (for_)
-import qualified Data.List.NonEmpty         as NE
-import qualified Data.Map                   as M
-import qualified Data.Text                  as T
-import           Data.Time.Clock
-import           Data.Time.Clock.POSIX
-import           Debug.Trace                (trace)
-import           Utils
-import Data.List (partition)
+import           Control.Arrow                  ((&&&), (>>>))
+import           Data.List                      (partition)
+import qualified Data.Map                       as M
+import           Data.Time.Clock                (NominalDiffTime, UTCTime,
+                                                 diffUTCTime)
+import           Data.Time.Clock.POSIX          (posixSecondsToUTCTime)
+import           Telegram                       (ChatId (ChatId),
+                                                 UserId (UserId))
 import qualified Telegram.Database.API.Messages as TDLib
-import Data.Int (Int32)
-import Control.Arrow
-import Data.Time.Clock
 
-data Spam = Spam Int32 [TDLib.Message]
+data Spam = Spam UserId ChatId [TDLib.Message]
 
 messageStalenessDuration :: NominalDiffTime
-messageStalenessDuration = nominalDay
+messageStalenessDuration = 60 * 2 -- Keep them for 2 minutes for debugging purposes.
 
 messageSpamWindow :: NominalDiffTime
-messageSpamWindow = nominalDay
+messageSpamWindow = 60 -- Seconds
 
 spamMaxMessages :: Num a => a
-spamMaxMessages = 10
+spamMaxMessages = 5
 
 messageDate :: TDLib.Message -> UTCTime
 messageDate = posixSecondsToUTCTime . fromIntegral . TDLib.date
 
 detectSpams :: UTCTime -> [TDLib.Message] -> ([TDLib.Message], [Spam])
-detectSpams curr_time = map (TDLib.sender_user_id &&& (:[]))
-          >>> M.fromListWith (<>)
-          >>> M.foldlWithKey' decide ([], [])
+detectSpams curr_time =
+        -- [Message]
+        map (UserId . TDLib.sender_user_id &&& (:[]))
+        -- [(UserId, [Message]]
+    >>> M.fromListWith (<>)
+        -- M.Map UserId [Message]
+    >>> M.map (
+          -- [Message]
+          map (ChatId . TDLib.chat_id &&& (:[]))
+          -- [(ChatId, Message)]
+    >>>   M.fromListWith (<>)
+          -- M.Map ChatId Int
+    )
+    -- M.Map UserId (M.Map ChatId [Message])
+    >>> find_spams
+    -- ([TDLib.Message], [Spam])
   where
-    decide :: ([TDLib.Message], [Spam]) -> Int32 -> [TDLib.Message] -> ([TDLib.Message], [Spam])
-    decide (non_spams, spams) user messages =
+    find_spams :: M.Map UserId (M.Map ChatId [TDLib.Message]) -> ([TDLib.Message], [Spam])
+    find_spams = M.foldlWithKey' (\(all_messages, all_spams) user_id chat_to_messages ->
+            let (user_messages, user_spams) = find_users_spam user_id chat_to_messages in
+            (all_messages ++ user_messages, all_spams ++ user_spams)
+          ) ([], [])
+
+    find_user_chat_spams :: UserId -> ChatId -> [TDLib.Message] -> ([TDLib.Message], [Spam])
+    find_user_chat_spams user_id chat_id messages =
       let
         (_stale_messages, in_scope_messages) = partition message_stale messages
         (recent_messages, older_messages) = partition message_recent in_scope_messages
       in
         if length recent_messages > spamMaxMessages then
-          (non_spams ++ older_messages, Spam user recent_messages : spams)
+          (older_messages, [Spam user_id chat_id recent_messages])
         else
-          (non_spams ++ recent_messages ++ older_messages, spams)
+          (recent_messages ++ older_messages, [])
+
+    find_users_spam :: UserId -> M.Map ChatId [TDLib.Message] -> ([TDLib.Message], [Spam])
+    find_users_spam user_id =
+      M.foldlWithKey' (\(non_spams, spams) chat_id messages ->
+        let (user_chat_nonspams, user_chat_spams) = find_user_chat_spams user_id chat_id messages
+        in (non_spams ++ user_chat_nonspams, spams ++ user_chat_spams)
+      ) ([], [])
 
     message_stale :: TDLib.Message -> Bool
     message_stale message =
@@ -74,4 +77,4 @@ detectSpams curr_time = map (TDLib.sender_user_id &&& (:[]))
 
     message_recent :: TDLib.Message -> Bool
     message_recent message =
-      diffUTCTime curr_time (messageDate message) > messageSpamWindow
+      diffUTCTime curr_time (messageDate message) < messageSpamWindow
