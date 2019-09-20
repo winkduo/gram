@@ -33,6 +33,20 @@ packages:
     git: https://github.com/klappvisor/haskell-telegram-api.git
     commit: dcc491b6abee6157d4ec607c71ba3a4915eb0edb
 - completed:
+    cabal-file:
+      size: 2019
+      sha256: 5c7e72255b2cdce8c9617ed5dca22edf83038cf6e137a79648b968f58e3951cb
+    name: tdlib-haskell-bindings
+    version: 0.1.0.0
+    git: https://github.com/yigitozkavci/tdlib-haskell-bindings.git
+    pantry-tree:
+      size: 1190
+      sha256: 5a11e488ee061cb9a232eaf6aee31464bcfed14990be914fa141de9e4644ce79
+    commit: e65157cabe366d0c21a4595b1bc50f49e9a4ff74
+  original:
+    git: https://github.com/yigitozkavci/tdlib-haskell-bindings.git
+    commit: e65157cabe366d0c21a4595b1bc50f49e9a4ff74
+- completed:
     hackage: fused-effects-lens-0.2.0.0@sha256:635d491c98ed3319730dcf6118c219a765fef79aceb726d9f38d0765746da1b0,1484
     pantry-tree:
       size: 381
