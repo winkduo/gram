@@ -9,6 +9,7 @@ cabal-dev
 *.dyn_hi
 .hpc
 .hsenv
+.env
 .cabal-sandbox/
 cabal.sandbox.config
 *.prof
@@ -18,5 +19,8 @@ cabal.sandbox.config
 .stack-work/
 cabal.project.local
 cabal.project.local~
+error.log
+tdlib/
 .HTF/
 .ghc.environment.*
+result

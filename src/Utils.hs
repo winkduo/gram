@@ -1,12 +1,7 @@
-module Utils where
+module Utils (mapBy, mapByMaybe) where
 
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe)
 import Control.Arrow ((&&&))
-import Data.Kind (Type, Constraint)
-import qualified GHC.TypeLits as TL
-import Data.Proxy
-import Data.List (foldl')
 
 mapBy :: Ord k => (a -> k) -> [a] -> M.Map k a
 mapBy to_key = M.fromList . map (to_key &&& id)

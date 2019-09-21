@@ -15,20 +15,18 @@ build-type:          Simple
 extra-source-files:  CHANGELOG.md, README.md
 cabal-version:       >=1.10
 
-library
-  -- exposed-modules:    
-  -- other-modules:      
-  -- other-extensions:
-  build-depends:       base >=4.9
-  hs-source-dirs:      src
-  default-language:    Haskell2010
-
 executable gram
+  other-modules:      Options
+                      Spam.Debug
+                      Spam.Detector
+                      Spam.Notifications
+                      Spam.Options
+                      Spam.Worker
+                      Telegram
   main-is:             Main.hs
-  -- other-extensions:
   build-depends:       base >=4.9
                      , curl
-                     , telegram-api
+                     , tdlib-haskell-bindings
                      , http-client
                      , http-types
                      , http-client-tls
@@ -43,5 +41,13 @@ executable gram
                      , lens
                      , singletons
                      , vector-sized
+                     , load-env
+                     , aeson
+                     , privileged-concurrency
+                     , fused-effects
+                     , fused-effects-lens
+                     , unix
+                     , directory
+                     , optparse-applicative
   hs-source-dirs:      src
   default-language:    Haskell2010
