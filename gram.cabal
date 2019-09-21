@@ -28,7 +28,6 @@ executable gram
   -- other-extensions:
   build-depends:       base >=4.9
                      , curl
-                     , telegram-api
                      , tdlib-haskell-bindings
                      , http-client
                      , http-types
@@ -50,5 +49,6 @@ executable gram
                      , fused-effects
                      , fused-effects-lens
                      , unix
+                     , directory
   hs-source-dirs:      src
   default-language:    Haskell2010

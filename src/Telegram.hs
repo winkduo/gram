@@ -10,14 +10,18 @@ module Telegram (TelegramController (..), mkTelegramController, UserId (..), Cha
 import           Control.Concurrent.Async            (async)
 import           Control.Concurrent.MVar             (modifyMVar_, readMVar)
 import qualified Control.Concurrent.Privileged       as PC
+import           Control.Concurrent.Timeout          (threadDelay)
 import           Control.Monad                       (forever)
 import           Control.Monad.IO.Class              (MonadIO, liftIO)
 import qualified Data.Aeson                          as JSON
+import           Data.Duration                       (DurationUnit (Second),
+                                                      ( # ))
 import           Data.Foldable                       (for_)
 import           Data.Functor                        (void)
-import           Data.Int                            (Int64)
-import           Data.Int                            (Int32)
+import           Data.Int                            (Int32, Int64)
+import           Data.String                         (IsString)
 import qualified Data.Text                           as T
+import           System.Directory                    (doesFileExist, removeFile)
 import           System.Environment                  (getEnv)
 import           System.Posix.Signals                (Handler (Catch),
                                                       installHandler, sigINT)
@@ -98,6 +102,20 @@ data TDAuthConfig = TDAuthConfig
   , _acPhoneNumber :: T.Text
   } deriving (Show, Eq)
 
+verificationCodeFilePath :: IsString s => s
+verificationCodeFilePath = "/tmp/code"
+
+readVerificationCode :: IO T.Text
+readVerificationCode = do
+  putStrLn $ "Trying to read verification code from " <> verificationCodeFilePath
+  doesFileExist verificationCodeFilePath >>= \case
+    True ->
+      fmap T.pack $
+        readFile verificationCodeFilePath <* removeFile verificationCodeFilePath
+    False -> do
+      threadDelay (5 # Second)
+      readVerificationCode
+
 handleUpdate :: TDLib.Client -> TDAuthConfig -> (TDLib.Update -> IO ()) -> Either String TDLib.Update -> IO ()
 handleUpdate client auth_config pub = \case
   Right (TDLib.UpdateAuthorizationState auth_state) ->
@@ -120,8 +138,7 @@ handleUpdate client auth_config pub = \case
         phoneNumber <- T.pack <$> getEnv "API_PHONE_NUMBER"
         TDLib.setAuthenticationPhoneNumber phoneNumber False False client
       TDLib.AuthorizationStateWaitCode {} -> do
-        putStrLn "Please, enter verification code:"
-        code <- T.pack <$> getLine
+        code <- readVerificationCode
         TDLib.checkAuthenticationCode code "" "" client
       TDLib.AuthorizationStateReady ->
         pure ()
