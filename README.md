@@ -12,6 +12,7 @@ Gram is a service with potentially multiple features that utilize Telegram Datab
 
 ## Running
 `$ stack run gram`
+
 You will start seeing log lines like "Trying to read verification code from /tmp/code".
 At this point you should have received a code on your Telegram. Type that code into /tmp/code.
 
@@ -22,5 +23,7 @@ At this point you should have received a code on your Telegram. Type that code i
 
 ## Create Deployment
 `$ nixops create nix/trivial.nix nix/trivial-digital-ocean.nix`
+
 `$ nixops deploy`
+
 This will create a new Droplet in DigitalOcean & create the `gram` as a systemd service.
