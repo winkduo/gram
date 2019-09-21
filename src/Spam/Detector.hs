@@ -1,36 +1,28 @@
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Spam (detectSpams, Spam (..)) where
+module Spam.Detector (detectSpams, Spam (..)) where
 
 import           Control.Arrow                  ((&&&), (>>>))
 import           Data.List                      (partition)
 import qualified Data.Map                       as M
-import           Data.Time.Clock                (NominalDiffTime, UTCTime,
-                                                 diffUTCTime)
+import           Data.Time.Clock                (UTCTime, diffUTCTime)
 import           Data.Time.Clock.POSIX          (posixSecondsToUTCTime)
+import           Spam.Options                   (SpamOptions (SpamOptions, _soMessageSpamWindow, _soSpamMaxMessages))
 import           Telegram                       (ChatId (ChatId),
                                                  UserId (UserId))
 import qualified Telegram.Database.API.Messages as TDLib
 
 data Spam = Spam UserId ChatId [TDLib.Message]
 
-messageStalenessDuration :: NominalDiffTime
-messageStalenessDuration = 60 * 2 -- Keep them for 2 minutes for debugging purposes.
-
-messageSpamWindow :: NominalDiffTime
-messageSpamWindow = 60 -- Seconds
-
-spamMaxMessages :: Num a => a
-spamMaxMessages = 5
-
 messageDate :: TDLib.Message -> UTCTime
 messageDate = posixSecondsToUTCTime . fromIntegral . TDLib.date
 
-detectSpams :: UTCTime -> [TDLib.Message] -> ([TDLib.Message], [Spam])
-detectSpams curr_time =
+detectSpams :: SpamOptions -> UTCTime -> [TDLib.Message] -> ([TDLib.Message], [Spam])
+detectSpams SpamOptions { _soMessageSpamWindow, _soSpamMaxMessages } curr_time =
         -- [Message]
         map (UserId . TDLib.sender_user_id &&& (:[]))
         -- [(UserId, [Message]]
@@ -56,10 +48,9 @@ detectSpams curr_time =
     find_user_chat_spams :: UserId -> ChatId -> [TDLib.Message] -> ([TDLib.Message], [Spam])
     find_user_chat_spams user_id chat_id messages =
       let
-        (_stale_messages, in_scope_messages) = partition message_stale messages
-        (recent_messages, older_messages) = partition message_recent in_scope_messages
+        (recent_messages, older_messages) = partition message_recent messages
       in
-        if length recent_messages > spamMaxMessages then
+        if length recent_messages > _soSpamMaxMessages then
           (older_messages, [Spam user_id chat_id recent_messages])
         else
           (recent_messages ++ older_messages, [])
@@ -71,10 +62,6 @@ detectSpams curr_time =
         in (non_spams ++ user_chat_nonspams, spams ++ user_chat_spams)
       ) ([], [])
 
-    message_stale :: TDLib.Message -> Bool
-    message_stale message =
-      diffUTCTime curr_time (messageDate message) > messageStalenessDuration
-
     message_recent :: TDLib.Message -> Bool
     message_recent message =
-      diffUTCTime curr_time (messageDate message) < messageSpamWindow
+      diffUTCTime curr_time (messageDate message) < _soMessageSpamWindow
