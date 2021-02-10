@@ -1,0 +1,42 @@
+{
+    "hpack": {
+        "branch": "main",
+        "owner": "sol",
+        "repo": "hpack",
+        "rev": "a207c3eb3bcdf9279e82ba127f95745b3cea2377",
+        "sha256": "1zvlah44rfn3pqha66x1hjc2xz2yszkkpxwwsv7lsig8pmziv4m8",
+        "type": "tarball",
+        "url": "https://github.com/sol/hpack/archive/0.34.2.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "niv": {
+        "branch": "master",
+        "description": "Easy dependency management for Nix projects",
+        "homepage": "https://github.com/nmattia/niv",
+        "owner": "nmattia",
+        "repo": "niv",
+        "rev": "f73bf8d584148677b01859677a63191c31911eae",
+        "sha256": "0jlmrx633jvqrqlyhlzpvdrnim128gc81q5psz2lpp2af8p8q9qs",
+        "type": "tarball",
+        "url": "https://github.com/nmattia/niv/archive/f73bf8d584148677b01859677a63191c31911eae.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixpkgs": {
+        "branch": "release-20.03",
+        "description": "Nix Packages collection",
+        "homepage": "",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "929768261a3ede470eafb58d5b819e1a848aa8bf",
+        "sha256": "0zi54vbfi6i6i5hdd4v0l144y1c8rg6hq6818jjbbcnm182ygyfa",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/929768261a3ede470eafb58d5b819e1a848aa8bf.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "tdlib-haskell-bindings": {
+        "branch": "master",
+        "repo": "https://github.com/yigitozkavci/tdlib-haskell-bindings.git",
+        "rev": "e65157cabe366d0c21a4595b1bc50f49e9a4ff74",
+        "type": "git"
+    }
+}

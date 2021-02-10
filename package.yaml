@@ -1,0 +1,31 @@
+name: gram
+version: 0.1.0.0
+synopsis: An all-purpose Telegram bot in Haskell
+maintainer: Deniz Alp Durmaz <denizalpd@ogr.iu.edu.tr>
+category: Web
+license: BSD3
+default-extensions:
+  - OverloadedStrings
+  - RecordWildCards
+  - LambdaCase
+extra-source-files:
+  - README.md
+
+ghc-options:
+  -Wall
+
+dependencies:
+  - base
+
+library:
+  source-dirs:
+    - src
+  dependencies:
+    - aeson
+    - containers
+    - async
+    - directory
+    - privileged-concurrency
+    - text
+    - typed-duration
+    - unix

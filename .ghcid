@@ -1,1 +1,1 @@
---command="stack repl --ghc-options=\"-Wall -Wmissing-export-lists -Wmissing-import-lists -Wmissing-exported-signatures\""
+--command="cabal new-repl gram"
