@@ -1,14 +1,17 @@
 module Main (main) where
 
-import           Control.Concurrent.Async (async, cancel, waitAny)
-import           Data.Foldable            (for_)
-import           Data.Functor             (void)
+import Control.Concurrent.Async (async, cancel, waitAny)
+import Data.Foldable (for_)
+import Data.Functor (void)
 import qualified LoadEnv
-import           Options                  (Options (Options), askOptions)
-import           Spam.Worker              (mkSpamDetector)
-import           System.Posix.Signals     (Handler (Catch), installHandler,
-                                           sigINT)
-import           Telegram                 (mkTelegramController)
+import Options (Options (Options), askOptions)
+import Spam.Worker (mkSpamDetector)
+import System.Posix.Signals
+  ( Handler (Catch),
+    installHandler,
+    sigINT,
+  )
+import Telegram (mkTelegramController)
 
 main :: IO ()
 main = do

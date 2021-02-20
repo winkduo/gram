@@ -33,6 +33,18 @@
         "url": "https://github.com/NixOS/nixpkgs/archive/929768261a3ede470eafb58d5b819e1a848aa8bf.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "ormolu": {
+        "branch": "master",
+        "description": "A formatter for Haskell source code",
+        "homepage": null,
+        "owner": "tweag",
+        "repo": "ormolu",
+        "rev": "34bdf62429768f24b70d0f8ba7730fc4d8ae73ba",
+        "sha256": "0yfg45dfq6jx5nbfj5xihdzi8xhs7mxlm6b35rw6q8ck2qc2fm0l",
+        "type": "tarball",
+        "url": "https://github.com/tweag/ormolu/archive/34bdf62429768f24b70d0f8ba7730fc4d8ae73ba.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "tdlib-haskell-bindings": {
         "branch": "main",
         "description": "Haskell bindings for TDLib (Telegram Database Library) JSON interface",

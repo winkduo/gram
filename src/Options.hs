@@ -1,11 +1,11 @@
 module Options (askOptions, Options (..)) where
 
-import           Options.Applicative (Parser, briefDesc, execParser, info)
-import           Spam.Options        (SpamOptions, parseSpamOptions)
+import Options.Applicative (Parser, briefDesc, execParser, info)
+import Spam.Options (SpamOptions, parseSpamOptions)
 
-newtype Options = Options {
-  _oSpamOptions :: SpamOptions
-}
+newtype Option = Options
+  { _oSpamOptions :: SpamOptions
+  }
 
 askOptions :: IO Options
 askOptions =

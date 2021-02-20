@@ -13,6 +13,7 @@ let
         
   myHaskellPackages = pkgs.haskell.packages.${compiler}.override {
     overrides = hself: hsuper: {
+      ormolu = (import sources.ormolu {}).ormolu;
       tdlib-haskell-bindings =
         hself.callCabal2nix
           "tdlib-haskell-bindings"
@@ -34,10 +35,10 @@ let
     buildInputs = with pkgs.haskellPackages; [
       cabal-install
       ghcid
-      ormolu
       hlint
       pkgs.niv
       pkgs.nixpkgs-fmt
+      myHaskellPackages.ormolu
     ];
 
     libraryHaskellDepends = [
@@ -55,5 +56,6 @@ let
 in
 {
   inherit shell;
+  inherit myHaskellPackages;
   gram = myHaskellPackages.gram;
 }

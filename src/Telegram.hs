@@ -1,54 +1,67 @@
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NoMonoLocalBinds    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoMonoLocalBinds #-}
 
-module Telegram (TelegramController (..), mkTelegramController, UserId (..), ChatId (..)) where
+module Telegram
+  ( TelegramController (..),
+    mkTelegramController,
+    UserId (..),
+    ChatId (..),
+  )
+where
 
-import           Control.Concurrent.Async            (async)
-import           Control.Concurrent.MVar             (modifyMVar_, readMVar)
-import qualified Control.Concurrent.Privileged       as PC
-import           Control.Concurrent.Timeout          (threadDelay)
-import           Control.Monad                       (forever)
-import           Control.Monad.IO.Class              (MonadIO, liftIO)
-import qualified Data.Aeson                          as JSON
-import           Data.Duration                       (DurationUnit (Second),
-                                                      ( # ))
-import           Data.Foldable                       (for_)
-import           Data.Functor                        (void)
-import           Data.Int                            (Int32, Int64)
-import           Data.String                         (IsString)
-import qualified Data.Text                           as T
-import           System.Directory                    (doesFileExist, removeFile)
-import           System.Environment                  (getEnv)
-import           System.Posix.Signals                (Handler (Catch),
-                                                      installHandler, sigINT)
+import Control.Concurrent.Async (async)
+import Control.Concurrent.MVar (modifyMVar_, readMVar)
+import qualified Control.Concurrent.Privileged as PC
+import Control.Concurrent.Timeout (threadDelay)
+import Control.Monad (forever)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import qualified Data.Aeson as JSON
+import Data.Duration
+  ( DurationUnit (Second),
+    (#),
+  )
+import Data.Foldable (for_)
+import Data.Functor (void)
+import Data.Int (Int32, Int64)
+import Data.String (IsString)
+import qualified Data.Text as T
+import System.Directory (doesFileExist, removeFile)
+import System.Environment (getEnv)
+import System.Posix.Signals
+  ( Handler (Catch),
+    installHandler,
+    sigINT,
+  )
 import qualified Telegram.Database.API.Authorization as TDLib
-import qualified Telegram.Database.API.Update        as TDLib
-import qualified Telegram.Database.JSON              as TDLib
+import qualified Telegram.Database.API.Update as TDLib
+import qualified Telegram.Database.JSON as TDLib
 
-newtype UserId = UserId { unUserId :: Int32 }
+newtype UserId = UserId {unUserId :: Int32}
   deriving (Show, Eq, Ord)
-newtype ChatId = ChatId { unChatId :: Int64 }
+
+newtype ChatId = ChatId {unChatId :: Int64}
   deriving (Show, Eq, Ord)
 
 setVerbosity :: TDLib.Client -> IO ()
 setVerbosity =
-  TDLib.send $ JSON.object [
-    "@type"          JSON..= JSON.String ("setLogVerbosityLevel" :: T.Text),
-    "new_verbosity_level_" JSON..= JSON.toJSON (0 :: Int)
-  ]
+  TDLib.send $
+    JSON.object
+      [ "@type" JSON..= JSON.String ("setLogVerbosityLevel" :: T.Text),
+        "new_verbosity_level_" JSON..= JSON.toJSON (0 :: Int)
+      ]
 
 data TelegramController m update = TelegramController
-  { _tcSubscribeToUpdates :: m (PC.ReadOnlyChan update)
-  , _tcSendMessage        :: ChatId -> T.Text -> m ()
+  { _tcSubscribeToUpdates :: m (PC.ReadOnlyChan update),
+    _tcSendMessage :: ChatId -> T.Text -> m ()
   }
 
 data PubSub m update = PubSub
-  { _psPub :: update -> m ()
-  , _psSub :: m (PC.ReadOnlyChan update)
+  { _psPub :: update -> m (),
+    _psSub :: m (PC.ReadOnlyChan update)
   }
 
 mkPubSub :: MonadIO m => m (PubSub m update)
@@ -72,35 +85,40 @@ readAuthConfig =
 
 sendMessage :: TDLib.Client -> ChatId -> T.Text -> IO ()
 sendMessage client (ChatId chat_id) message =
-  TDLib.send (JSON.object [
-    "@type"          JSON..= JSON.String ("sendMessage" :: T.Text),
-    "chat_id"       JSON..= JSON.toJSON chat_id,
-    "input_message_content" JSON..= JSON.object [
-      "@type" JSON..= JSON.String "inputMessageText",
-      "text" JSON..= JSON.object [
-        "@type" JSON..= JSON.String "formattedText",
-        "text" JSON..= JSON.String message
-      ]
-    ]
-  ]) client
+  TDLib.send
+    ( JSON.object
+        [ "@type" JSON..= JSON.String ("sendMessage" :: T.Text),
+          "chat_id" JSON..= JSON.toJSON chat_id,
+          "input_message_content"
+            JSON..= JSON.object
+              [ "@type" JSON..= JSON.String "inputMessageText",
+                "text"
+                  JSON..= JSON.object
+                    [ "@type" JSON..= JSON.String "formattedText",
+                      "text" JSON..= JSON.String message
+                    ]
+              ]
+        ]
+    )
+    client
 
 mkTelegramController :: IO (TelegramController IO TDLib.Update, IO ())
 mkTelegramController = do
   client <- TDLib.create
   let destroy = TDLib.destroy client
   void $ installHandler sigINT (Catch destroy) Nothing
-
   setVerbosity client
   config <- readAuthConfig
   PubSub pub sub <- mkPubSub
   void $ async $ forever $ TDLib.receiveEither client >>= handleUpdate client config pub
-  pure $ (TelegramController sub (sendMessage client), destroy)
+  pure (TelegramController sub (sendMessage client), destroy)
 
 data TDAuthConfig = TDAuthConfig
-  { _acApiId       :: Int
-  , _acApiHash     :: String
-  , _acPhoneNumber :: T.Text
-  } deriving (Show, Eq)
+  { _acApiId :: Int,
+    _acApiHash :: String,
+    _acPhoneNumber :: T.Text
+  }
+  deriving (Show, Eq)
 
 verificationCodeFilePath :: IsString s => s
 verificationCodeFilePath = "/tmp/code"
@@ -131,7 +149,7 @@ handleUpdate client auth_config pub = \case
     handle_auth_state :: TDAuthConfig -> TDLib.AuthorizationState -> IO ()
     handle_auth_state TDAuthConfig {..} = \case
       TDLib.AuthorizationStateWaitTdlibParameters ->
-        TDLib.setTdlibParameters (TDLib.defaultTdlibParameters { TDLib.api_id = _acApiId, TDLib.api_hash = _acApiHash }) client
+        TDLib.setTdlibParameters (TDLib.defaultTdlibParameters {TDLib.api_id = _acApiId, TDLib.api_hash = _acApiHash}) client
       (TDLib.AuthorizationStateWaitEncryptionKey _) ->
         TDLib.checkDatabaseEncryptionKey "" client
       TDLib.AuthorizationStateWaitPhoneNumber -> do

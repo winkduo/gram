@@ -1,29 +1,38 @@
-{-# LANGUAGE LambdaCase     #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Spam.Worker (mkSpamDetector) where
+module Spam.Worker
+  ( mkSpamDetector,
+  )
+where
 
-import           Control.Concurrent.Async       (async)
-import qualified Control.Concurrent.Privileged  as PC
-import           Control.Concurrent.Timeout     (threadDelay)
-import           Control.Monad                  (forever)
-import           Data.Functor                   (void)
-import           Data.IORef                     (IORef, atomicModifyIORef',
-                                                 newIORef, readIORef)
-import qualified Data.Map                       as M
-import           Data.Time.Clock                (getCurrentTime)
-import           Spam.Debug                     (showSpamState)
-import           Spam.Detector                  (detectSpams)
-import           Spam.Notifications             (Notification, notifySpams)
-import           Spam.Options                   (SpamOptions (SpamOptions, _soSpamCheckInterval))
-import           Telegram                       (TelegramController (TelegramController),
-                                                 UserId (UserId))
+import Control.Concurrent.Async (async)
+import qualified Control.Concurrent.Privileged as PC
+import Control.Concurrent.Timeout (threadDelay)
+import Control.Monad (forever)
+import Data.Functor (void)
+import Data.IORef
+  ( IORef,
+    atomicModifyIORef',
+    newIORef,
+    readIORef,
+  )
+import qualified Data.Map as M
+import Data.Time.Clock (getCurrentTime)
+import Spam.Debug (showSpamState)
+import Spam.Detector (detectSpams)
+import Spam.Notifications (Notification, notifySpams)
+import Spam.Options (SpamOptions (SpamOptions, _soSpamCheckInterval))
+import Telegram
+  ( TelegramController (TelegramController),
+    UserId (UserId),
+  )
 import qualified Telegram.Database.API.Messages as TDLib
-import qualified Telegram.Database.API.Update   as TDLib
-import qualified Telegram.Database.API.User     as TDLibUser
+import qualified Telegram.Database.API.Update as TDLib
+import qualified Telegram.Database.API.User as TDLibUser
 
 mkSpamDetector :: SpamOptions -> TelegramController IO TDLib.Update -> IO ()
-mkSpamDetector opts@SpamOptions { _soSpamCheckInterval } (TelegramController sub send_message) = do
+mkSpamDetector opts@SpamOptions {_soSpamCheckInterval} (TelegramController sub send_message) = do
   messages <- newIORef []
   users <- newIORef M.empty
   void $ async $ process_updates messages users
@@ -39,14 +48,13 @@ mkSpamDetector opts@SpamOptions { _soSpamCheckInterval } (TelegramController sub
       updated_notifications <- notifySpams opts spams send_message u curr_time notifications
       threadDelay _soSpamCheckInterval
       detect_spams updated_notifications messages users
-
     process_updates :: IORef [TDLib.Message] -> IORef (M.Map UserId TDLibUser.User) -> IO ()
     process_updates messages users = do
       chan <- sub
       forever $
         PC.readChan chan >>= \case
           TDLib.UpdateNewMessage message _ _ ->
-            atomicModifyIORef' messages $ \xs -> (message:xs, ())
+            atomicModifyIORef' messages $ \xs -> (message : xs, ())
           TDLib.UpdateUser user ->
             atomicModifyIORef' users $ \m -> (M.insert (UserId (TDLibUser.id user)) user m, ())
           _ ->
