@@ -3,21 +3,21 @@
 let
   sources = import ./nix/sources.nix;
   pkgs = import sources.nixpkgs {};
-  lib-so = import ./lib {};
+
+  deps = {
+    tdjson = pkgs.tdlib;
+  };
 
   inherit (pkgs.lib.trivial) flip pipe;
   inherit (pkgs.haskell.lib) appendPatch appendConfigureFlags;
         
   myHaskellPackages = pkgs.haskell.packages.${compiler}.override {
     overrides = hself: hsuper: {
-      tdlib-yigit =
+      tdlib-haskell-bindings =
         hself.callCabal2nix
-          "tdlib-yigit"
+          "tdlib-haskell-bindings"
           sources.tdlib-haskell-bindings
-          {};
-      tdlib = hself.tdlib-yigit {
-        extra-libraries = [tdjson];
-      };
+          deps;
       gram =
         hself.callCabal2nix
           "gram"
@@ -37,21 +37,13 @@ let
       hlint
       pkgs.niv
       pkgs.nixpkgs-fmt
-      myHaskellPackages.tdlib-yigit
     ];
 
-
-  # withHoogle = false;
-  # libraryHaskellDepends = [
-  # 
-  # ];
-  #
-  # executableHaskellDepends = [
-  #
-  # ];
+    libraryHaskellDepends = [
+      myHaskellPackages.tdlib-haskell-bindings
+    ];
 
     shellHook = ''
-      export LD_LIBRARY_PATH=lib
       set -e
       hpack
       set +e
@@ -61,7 +53,5 @@ let
 in
 {
   inherit shell;
-  inherit myHaskellPackages;
-  tdjson = myHaskellPackages.tdjson;
-  zaku = myHaskellPackages.zaku;
+  gram = myHaskellPackages.gram;
 }

@@ -25,7 +25,11 @@ library:
     - containers
     - async
     - directory
+    - load-env
+    - optparse-applicative
     - privileged-concurrency
     - text
+    - time
+    - tdlib-haskell-bindings
     - typed-duration
     - unix

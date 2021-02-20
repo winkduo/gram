@@ -1,8 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: f2a8b4f2f426d4b57a2c87f24a3cbd5d79b0c49b4c98e48c934ab1bcc36fa3f1
 
 name:           gram
 version:        0.1.0.0
@@ -32,16 +34,18 @@ library
       src
   default-extensions: OverloadedStrings RecordWildCards LambdaCase
   ghc-options: -Wall
-  extra-libraries:
-      tdjson
   build-depends:
       aeson
     , async
     , base
     , containers
     , directory
+    , load-env
+    , optparse-applicative
     , privileged-concurrency
+    , tdlib-haskell-bindings
     , text
+    , time
     , typed-duration
     , unix
   default-language: Haskell2010

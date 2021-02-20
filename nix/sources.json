@@ -34,9 +34,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "tdlib-haskell-bindings": {
-        "branch": "master",
-        "repo": "https://github.com/yigitozkavci/tdlib-haskell-bindings.git",
+        "branch": "main",
+        "description": "Haskell bindings for TDLib (Telegram Database Library) JSON interface",
+        "homepage": "",
+        "owner": "winkduo",
+        "repo": "tdlib-haskell-bindings",
         "rev": "e65157cabe366d0c21a4595b1bc50f49e9a4ff74",
-        "type": "git"
+        "sha256": "0nmwkkwhdhal549zfsh1kwhar9c0mr3gjkk9sdx59nf85mym7z4l",
+        "type": "tarball",
+        "url": "https://github.com/winkduo/tdlib-haskell-bindings/archive/e65157cabe366d0c21a4595b1bc50f49e9a4ff74.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
