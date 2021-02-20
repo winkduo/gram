@@ -23,5 +23,5 @@ error.log
 tdlib/
 .HTF/
 .ghc.environment.*
-result
+result*
 lib/

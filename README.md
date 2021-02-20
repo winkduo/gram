@@ -1,28 +1,30 @@
-🚧 gram is under construction, information below may be out of date. 🚧
 # gram
-Gram is a service with potentially multiple features that utilize Telegram Database Library & Bot API.
+Gram is an executable that utilizes the Telegram Database Library & Bot API to make your life easier.
 
-# Usage:
-## Prerequisites
-- Haskell Tool Stack (works fine on v2.1.3)
-- Nix (https://nixos.wiki/wiki/Nix)
-- .env file with the following fields:
-  - API\_ID: Telegram API ID (Obtainable from https://my.telegram.org)
-  - API\_HASH: Telegram API ID (Obtainable from https://my.telegram.org)
-  - API\_PHONE\_NUMBER: Will be used for phone verification of Telegram API
+## Usage
+### Prerequisites
+- [Nix](https://nixos.wiki/wiki/Nix)
+- A .env file with the following fields:
+  - API\_ID: `App api_id` field under [My Telegram > App Configuration](https://my.telegram.org/apps)
+  - API\_HASH: `App api_hash` field under [My Telegram > App Configuration](https://my.telegram.org/apps)
+  - API\_PHONE\_NUMBER: This will be used for phone verification of Telegram API, enter in international format
+### Running
+```
+user@machine:~/src/gram$ nix-build
+> [2 built, 0.0 MiB DL]
+user@machine:~/src/gram$ nix-shell
+> gram.cabal is up-to-date
+[nix-shell:~/src/gram]$ gram -c <CHAT_ID>
+```
 
-## Running
-`$ stack run gram`
+Once gram starts running you'll receive a verification code on the Telegram app, insert that into `/tmp/code`.
 
-You will start seeing log lines like "Trying to read verification code from /tmp/code".
-At this point you should have received a code on your Telegram. Type that code into /tmp/code.
-
-# Deployment
-## Prerequisites
+## Deployment
+### Prerequisites
 - Nixops (Install using `nix-env -i nixops`)
 - Have your DigitalOcean token in env variable: export DIGITAL\_OCEAN\_AUTH\_TOKEN=\<token\>
 
-## Create Deployment
+### Create Deployment
 `$ nixops create nix/trivial.nix nix/trivial-digital-ocean.nix`
 
 `$ nixops deploy`

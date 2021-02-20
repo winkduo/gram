@@ -25,6 +25,7 @@ let
           {};
     };
   };
+
   shell = myHaskellPackages.shellFor {
     packages = p: [
       p.gram
@@ -47,6 +48,7 @@ let
       set -e
       hpack
       set +e
+      export PATH=$PATH:result/bin
     '';
 };
 
