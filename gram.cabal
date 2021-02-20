@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f2a8b4f2f426d4b57a2c87f24a3cbd5d79b0c49b4c98e48c934ab1bcc36fa3f1
+-- hash: 19594ada28ccdb53f4ad8387c589b946161878316fd2fd758bb1c1c206525102
 
 name:           gram
 version:        0.1.0.0
@@ -17,9 +17,9 @@ build-type:     Simple
 extra-source-files:
     README.md
 
-library
-  exposed-modules:
-      Main
+executable gram
+  main-is: Main.hs
+  other-modules:
       Options
       Spam.Debug
       Spam.Detector
@@ -28,7 +28,6 @@ library
       Spam.Worker
       Telegram
       Utils
-  other-modules:
       Paths_gram
   hs-source-dirs:
       src

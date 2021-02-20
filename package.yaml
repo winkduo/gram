@@ -17,19 +17,21 @@ ghc-options:
 dependencies:
   - base
 
-library:
-  source-dirs:
-    - src
-  dependencies:
-    - aeson
-    - containers
-    - async
-    - directory
-    - load-env
-    - optparse-applicative
-    - privileged-concurrency
-    - text
-    - time
-    - tdlib-haskell-bindings
-    - typed-duration
-    - unix
+executables:
+  gram:
+    main: Main.hs
+    source-dirs:
+      - src
+    dependencies:
+      - aeson
+      - containers
+      - async
+      - directory
+      - load-env
+      - optparse-applicative
+      - privileged-concurrency
+      - text
+      - time
+      - tdlib-haskell-bindings
+      - typed-duration
+      - unix
