@@ -3,7 +3,7 @@ module Options (askOptions, Options (..)) where
 import Options.Applicative (Parser, briefDesc, execParser, info)
 import Spam.Options (SpamOptions, parseSpamOptions)
 
-newtype Option = Options
+newtype Options = Options
   { _oSpamOptions :: SpamOptions
   }
 
