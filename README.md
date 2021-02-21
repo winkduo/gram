@@ -1,6 +1,8 @@
 # gram
-Gram is an executable that utilizes the Telegram Database Library & Bot API to make your life easier.
 
+[![Haskell CI](https://github.com/dalpd/gram/actions/workflows/haskell.yml/badge.svg)](https://github.com/dalpd/gram/actions/workflows/haskell.yml)
+
+Gram is an executable that utilizes the Telegram Database Library & Bot API to make your life easier.
 ## Usage
 ### Prerequisites
 - [Nix](https://nixos.wiki/wiki/Nix)
