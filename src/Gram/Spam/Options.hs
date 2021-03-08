@@ -1,9 +1,10 @@
-module Spam.Options (SpamOptions (SpamOptions, _soAllowedChatIds, _soTestChatId, _soSpamCheckInterval, _soMessageSpamWindow, _soSpamMaxMessages, _soNotificationReset), parseSpamOptions) where
+module Gram.Spam.Options (SpamOptions (SpamOptions, _soAllowedChatIds, _soTestChatId, _soSpamCheckInterval, _soMessageSpamWindow, _soSpamMaxMessages, _soNotificationReset), parseSpamOptions) where
 
 import Data.Duration (Duration, DurationUnit (Second), (#))
 import Data.Maybe (mapMaybe)
 import Data.Semigroup ((<>))
 import Data.Time.Clock (NominalDiffTime)
+import Gram.Types (ChatId (..))
 import Options.Applicative
   ( Parser,
     auto,
@@ -15,7 +16,6 @@ import Options.Applicative
     strOption,
     value,
   )
-import Telegram (ChatId (ChatId))
 import Text.Read (readMaybe)
 
 data SpamOptions = SpamOptions

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 19594ada28ccdb53f4ad8387c589b946161878316fd2fd758bb1c1c206525102
+-- hash: 3d5e22e7731a0432792f04618fd527068b23bf9e2359ca8cb750dd88dbe7c24c
 
 name:           gram
 version:        0.1.0.0
@@ -20,14 +20,16 @@ extra-source-files:
 executable gram
   main-is: Main.hs
   other-modules:
-      Options
-      Spam.Debug
-      Spam.Detector
-      Spam.Notifications
-      Spam.Options
-      Spam.Worker
-      Telegram
-      Utils
+      Gram.Options
+      Gram.Spam.Debug
+      Gram.Spam.Detector
+      Gram.Spam.Notifications
+      Gram.Spam.Options
+      Gram.Spam.Types
+      Gram.Spam.Worker
+      Gram.Telegram
+      Gram.Types
+      Gram.Utils
       Paths_gram
   hs-source-dirs:
       src
@@ -39,9 +41,11 @@ executable gram
     , base
     , containers
     , directory
+    , katip
     , load-env
     , optparse-applicative
     , privileged-concurrency
+    , safe
     , tdlib-haskell-bindings
     , text
     , time

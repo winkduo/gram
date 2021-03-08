@@ -4,48 +4,44 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Spam.Detector
-  ( detectSpams,
-    Spam (..),
+-- |
+module Gram.Spam.Detector
+  ( -- *
+    detectSpams,
   )
 where
+
+------------------------------------------------------------------------------
 
 import Control.Arrow ((&&&), (>>>))
 import Data.List (partition)
 import qualified Data.Map as M
 import Data.Time.Clock (UTCTime, diffUTCTime)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
-import Spam.Options (SpamOptions (SpamOptions, _soMessageSpamWindow, _soSpamMaxMessages))
-import Telegram
-  ( ChatId (ChatId),
-    UserId (UserId),
-  )
+import Gram.Spam.Options (SpamOptions (SpamOptions, _soMessageSpamWindow, _soSpamMaxMessages))
+import Gram.Spam.Types
+import Gram.Types (ChatId (..), UserId (..))
 import qualified Telegram.Database.API.Messages as TDLib
 
-data Spam = Spam UserId ChatId [TDLib.Message]
+------------------------------------------------------------------------------
 
+-- |
 messageDate :: TDLib.Message -> UTCTime
 messageDate = posixSecondsToUTCTime . fromIntegral . TDLib.date
 
+------------------------------------------------------------------------------
+
+-- |
 detectSpams :: SpamOptions -> UTCTime -> [TDLib.Message] -> ([TDLib.Message], [Spam])
 detectSpams SpamOptions {_soMessageSpamWindow, _soSpamMaxMessages} curr_time =
-  -- [Message]
   map (UserId . TDLib.sender_user_id &&& (: []))
-    -- [(UserId, [Message]]
     >>> M.fromListWith (<>)
-    -- M.Map UserId [Message]
     >>> M.map
-      ( -- [Message]
-        map (ChatId . TDLib.chat_id &&& (: []))
-          -- [(ChatId, Message)]
+      ( map (ChatId . TDLib.chat_id &&& (: []))
           >>> M.fromListWith (<>)
-          -- M.Map ChatId Int
       )
-    -- M.Map UserId (M.Map ChatId [Message])
     >>> find_spams
   where
-    -- ([TDLib.Message], [Spam])
-
     find_spams :: M.Map UserId (M.Map ChatId [TDLib.Message]) -> ([TDLib.Message], [Spam])
     find_spams =
       M.foldlWithKey'

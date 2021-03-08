@@ -24,14 +24,16 @@ executables:
       - src
     dependencies:
       - aeson
-      - containers
       - async
+      - containers
       - directory
+      - katip
       - load-env
       - optparse-applicative
       - privileged-concurrency
+      - safe
       - text
-      - time
       - tdlib-haskell-bindings
+      - time
       - typed-duration
       - unix

@@ -1,11 +1,14 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ViewPatterns #-}
 
-module Spam.Notifications
+-- |
+module Gram.Spam.Notifications
   ( Notification,
     notifySpams,
   )
 where
+
+------------------------------------------------------------------------------
 
 import Control.Arrow ((&&&))
 import Data.Duration (Duration (Duration))
@@ -20,28 +23,31 @@ import Data.Time.Clock
     getCurrentTime,
   )
 import Data.Traversable (for)
-import Spam.Detector (Spam (Spam))
-import Spam.Options (SpamOptions (SpamOptions, _soAllowedChatIds, _soNotificationReset, _soTestChatId))
-import Telegram (ChatId (ChatId), UserId (UserId))
+import Gram.Spam.Options (SpamOptions (SpamOptions, _soAllowedChatIds, _soNotificationReset, _soTestChatId))
+import Gram.Spam.Types
+import Gram.Types (ChatId (..), UserId (..))
 import qualified Telegram.Database.API.User as TDLibUser
 import Text.Printf (printf)
 
-data Notification = Notification
-  { _nUserId :: UserId,
-    _nDate :: UTCTime
-  }
-
+------------------------------------------------------------------------------
 -- Yigit - Alp private channel
 _yigitAlpChatId :: ChatId
-_yigitAlpChatId = ChatId 160758532
+_yigitAlpChatId = ChatId 123456789
 
+------------------------------------------------------------------------------
 -- private GramBot
 _grambotChatId :: ChatId
-_grambotChatId = ChatId 804952120
+_grambotChatId = ChatId 12345679
 
+------------------------------------------------------------------------------
+
+-- |
 toNDT :: Duration -> NominalDiffTime
 toNDT (Duration us) = fromIntegral $ us `div` (10 ^ (6 :: Int))
 
+------------------------------------------------------------------------------
+
+-- |
 notifySpams ::
   SpamOptions ->
   [Spam] ->
