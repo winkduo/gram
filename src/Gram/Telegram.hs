@@ -1,5 +1,4 @@
 {-# LANGUAGE DerivingStrategies #-}
-
 -- |
 module Gram.Telegram
   ( -- *
@@ -9,27 +8,14 @@ where
 
 ------------------------------------------------------------------------------
 
-import Control.Concurrent.Async (async)
-import Control.Concurrent.MVar (modifyMVar_, readMVar)
-import qualified Control.Concurrent.Privileged as PC
-import Control.Concurrent.Timeout (threadDelay)
-import Control.Monad (forever)
-import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Data.Aeson as A
-import Data.Duration (DurationUnit (..), (#))
-import Data.Foldable (for_)
-import Data.Functor (void)
-import Data.Maybe
-import Data.String (IsString)
 import Data.Text (Text, pack)
 import Gram.Types
-import Safe
-import System.Directory (doesFileExist, removeFile)
-import System.Environment (getEnv)
-import System.Posix.Signals (Handler (..), installHandler, sigINT)
-import qualified Telegram.Database.API.Authorization as TDLib
-import qualified Telegram.Database.API.Update as TDLib
-import qualified Telegram.Database.JSON as TDLib
+import Gram.Prelude
+import qualified Gram.Prelude as PC
+import Telegram.Database.API.Authorization as TDLib
+import Telegram.Database.API.Update as TDLib
+import Telegram.Database.JSON as TDLib
 
 ------------------------------------------------------------------------------
 
@@ -79,18 +65,18 @@ sendMessage client (ChatId chat_id) message =
     ( A.object
         [ "@type" A..= A.String "sendMessage",
           "chat_id" A..= A.toJSON chat_id,
-          "input_message_content"
-            A..= A.object
-              [ "@type" A..= A.String "inputMessageText",
-                "text"
-                  A..= A.object
-                    [ "@type" A..= A.String "formattedText",
-                      "text" A..= A.String message
-                    ]
-              ]
+          "input_message_content" A..=
+            commonTextSerialization "inputMessageText"
+            (commonTextSerialization "formattedText" (A.String message))
         ]
     )
     client
+  where
+    commonTextSerialization typeStr textStr =
+      A.object
+      [ "@type" A..= A.String typeStr,
+        "text" A..= textStr
+      ]
 
 ------------------------------------------------------------------------------
 
@@ -98,13 +84,13 @@ sendMessage client (ChatId chat_id) message =
 mkTelegramController :: IO (TelegramController IO TDLib.Update, IO ())
 mkTelegramController = do
   client <- TDLib.create
-  let destroy = TDLib.destroy client
-  void $ installHandler sigINT (Catch destroy) Nothing
+  let destroy' = TDLib.destroy client
+  void $ installHandler sigINT (Catch destroy') Nothing
   setVerbosity verbosityLevel client
   config <- readAuthConfig
   UpdateController publish subscribe <- mkUpdateController
   void $ async $ forever $ TDLib.receiveEither client >>= handleUpdate client config publish
-  pure (TelegramController subscribe (sendMessage client), destroy)
+  pure (TelegramController subscribe (sendMessage client), destroy')
   where
     verbosityLevel = 0
 
@@ -133,19 +119,25 @@ handleUpdate ::
   (TDLib.Update -> IO ()) ->
   Either String TDLib.Update ->
   IO ()
-handleUpdate client auth_config pub = \case
-  Right (TDLib.UpdateAuthorizationState auth_state) ->
-    handle_auth_state auth_config auth_state
+handleUpdate client config pub = \case
+  Right (TDLib.UpdateAuthorizationState authState) ->
+    handleAuthState config client authState
   Right update -> do
+    -- TODO(dalp): These should just be logs
     putStrLn $ "Got update: " <> show update
     pub update
-  Left "NULL" ->
-    pure ()
-  unknown ->
+  Left unknown ->
     print unknown
-  where
-    handle_auth_state :: TDAuthConfig -> TDLib.AuthorizationState -> IO ()
-    handle_auth_state TDAuthConfig {..} = \case
+
+------------------------------------------------------------------------------
+
+-- |
+handleAuthState ::
+  TDAuthConfig ->
+  TDLib.Client ->
+  TDLib.AuthorizationState ->
+  IO ()
+handleAuthState TDAuthConfig {..} client = \case
       TDLib.AuthorizationStateWaitTdlibParameters ->
         TDLib.setTdlibParameters
           TDLib.defaultTdlibParameters
